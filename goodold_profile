@@ -7,6 +7,10 @@ for f in ~/bin/goodold-bin/functions/*; do
   fi
 done
 
+# Add ruby gems to path
+if [ -d $HOME/.gem/ruby/1.8/bin ]; then
+  PATH=$HOME/.gem/ruby/1.8/bin:$PATH
+fi
 
 # Add apache bin to path
 if [ -d /opt/local/apache2/bin ]; then
@@ -18,11 +22,19 @@ if [ -d /opt/local/lib/mysql5/bin ]; then
   PATH=/opt/local/lib/mysql5/bin:$PATH
 fi
 
+# Add /usr/local to path
+if [ -d /usr/local/bin ]; then
+  PATH=/usr/local/bin:$PATH
+fi
+if [ -d /usr/local/sbin ]; then
+  PATH=/usr/local/sbin:$PATH
+fi
+
 # Add your local bin directory to the path
-if [ -d ~/bin ]; then
-  PATH=~/bin:$PATH
+if [ -d $HOME/bin ]; then
+  PATH=$HOME/bin:$PATH
   # Add all subfolders of you bin dir to your path
-  for dir in ~/bin/*; do
+  for dir in $HOME/bin/*; do
     if [ -d $dir ]; then
       PATH=$dir:$PATH
     fi
@@ -33,6 +45,8 @@ export PATH
 # Add bash completion support if it exists
 if [ -f /opt/local/etc/bash_completion ]; then
   . /opt/local/etc/bash_completion
+elif [ -f `brew --prefix`/etc/bash_completion ]; then
+  . `brew --prefix`/etc/bash_completion
 fi
 
 # Add some aliases
