@@ -33,8 +33,14 @@ if [ "${REMOTE_PROC_DB-n}" != "n" ]; then
   echo "Loading data into processing database"
   mysql -h $REMOTE_PROC_HOST -P $REMOTE_PROC_PORT -u $REMOTE_PROC_USER -p"$REMOTE_PROC_PASS" $REMOTE_PROC_DB < dump.sql
   echo "Processing..."
-  echo "UPDATE ${TABLE_PREFIX}users SET pass=MD5('pass') WHERE uid!=0; TRUNCATE TABLE ${TABLE_PREFIX}cache; TRUNCATE TABLE ${TABLE_PREFIX}cache_block; TRUNCATE TABLE ${TABLE_PREFIX}cache_content; TRUNCATE TABLE ${TABLE_PREFIX}cache_filter; TRUNCATE TABLE ${TABLE_PREFIX}cache_form; TRUNCATE TABLE ${TABLE_PREFIX}cache_menu; TRUNCATE TABLE ${TABLE_PREFIX}cache_page; TRUNCATE TABLE ${TABLE_PREFIX}cache_update; TRUNCATE TABLE ${TABLE_PREFIX}cache_views; TRUNCATE TABLE ${TABLE_PREFIX}cache_views_data;" |
+  echo "UPDATE ${TABLE_PREFIX}users SET pass=MD5('pass') WHERE uid!=0;" |
     mysql -h $REMOTE_PROC_HOST -P $REMOTE_PROC_PORT -u $REMOTE_PROC_USER -p"$REMOTE_PROC_PASS" $REMOTE_PROC_DB;
+  # Looping over them to ensure that a failure on one because it doesn't exist doesn't affect the others
+  TRUNCATE_TABLES="cache cache_block cache_coder cache_content cache_filter cache_form cache_menu cache_page cache_update cache_views cache_views_data sessions watchdog"
+  for TRUNCATE_TABLE in $TRUNCATE_TABLES; do
+    echo "TRUNCATE TABLE ${TABLE_PREFIX}${TRUNCATE_TABLE};" |
+      mysql -h $REMOTE_PROC_HOST -P $REMOTE_PROC_PORT -u $REMOTE_PROC_USER -p"$REMOTE_PROC_PASS" $REMOTE_PROC_DB;
+  done
   echo "Dumping processing database"
   mysqldump -h $REMOTE_PROC_HOST -P $REMOTE_PROC_PORT -u $REMOTE_PROC_USER -p"$REMOTE_PROC_PASS" $REMOTE_PROC_DB > dump.sql
 fi
