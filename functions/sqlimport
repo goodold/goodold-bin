@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+function sqlimport {
+  FILE=$1
+  if [ $3 ]; then
+    USER=$2
+    DB=$3
+  else
+    USER='root'
+    DB=$2
+  fi
+
+  pv $FILE | mysql -u $USER -p $DB
+}
