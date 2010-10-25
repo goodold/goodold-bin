@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+function fm {
+	find . -name "$1" -exec mate {} \;
+}
