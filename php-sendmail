@@ -14,7 +14,7 @@ if (!is_dir($dir)) {
 }
 
 $input = file_get_contents('php://stdin');
-preg_match('|^To: (.*)|', $input, $matches);
-$filename = isset($matches[1]) ? $matches[1] : 'no-recepient_';
-$t = $dir . '/' . date('ymd\TH:i:s') .''. $filename .'.txt';
+preg_match('|^To:[ ]*(\S*)|', $input, $matches);
+$filename = !empty($matches[1]) ? $matches[1] : 'no-recepient';
+$t = $dir . '/' . date('ymd\TH:i:s') . '-' . $filename .'.txt';
 file_put_contents($t, $input);
