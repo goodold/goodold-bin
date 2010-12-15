@@ -1,5 +1,3 @@
 #!/usr/bin/env bash
 
-sudo rm ~/Library/Logs/php.log
-sudo touch ~/Library/Logs/php.log
-sudo chmod 777 ~/Library/Logs/php.log
+echo '' > ~/Library/Logs/php.log
