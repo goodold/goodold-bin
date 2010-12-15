@@ -1,0 +1,14 @@
+#!/usr/bin/env php
+<?php
+/**
+ * Saves mails sent from PHP as textfiles. Perfect for testing email.
+ * Add the following to your php.ini:
+ * sendmail_path = php-sendmail
+ * 
+ * Heavily inspired by http://drupal4hu.com/node/55
+ */
+
+// Use error_log instead
+$input = file_get_contents('php://stdin');
+preg_match('|^To: (.*)|', $input, $matches);
+error_log(var_export("\n" . '>>>>>> NEW MAIL <<<<<<' . "\n" . $input, TRUE));
