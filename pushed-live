@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+git tag -s pushed-live-`date | sed s/:/./g | sed s/\ /-/g`
