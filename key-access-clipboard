@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+CLIPBOARD=`pbpaste`
+HOST="${1:---help}"
+
+if [[ "$HOST" == "--help" ]]; then
+  echo "Push a public key from the Clipboard to a remote machine."
+  echo ""
+  echo "Usage: key-access-clipboard [user@]hostname"
+else
+  if [[ $CLIPBOARD == ssh-* ]]; then
+    ssh $HOST "mkdir -p ~/.ssh && echo '"$CLIPBOARD"' >> ~/.ssh/authorized_keys"
+    echo "Public key pushed."
+  else
+    echo "Sorry, your Clipboard doesn't seem to contain a public key."
+  fi
+fi

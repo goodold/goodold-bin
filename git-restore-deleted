@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+#####
+# Usage: git restore-deleted <refspec>
+# Restores all files that were deleted in the specified commit.
+#
+# Great when removing files from the git repo that still
+# should exist in the working directory, as settings files,
+# caches and other transient or derivative files.
+#####
+
+if [ -n "$1" ]; then
+  for FILE in `git diff --name-status $1^ $1 | grep ^D | cut -c 3-`; do
+    git checkout $1^ $FILE
+    git rm --cache --quiet $FILE
+    echo "Restored $FILE"
+  done
+else
+  echo "Usage: git restore-deleted <refspec>
+Restores all files that were deleted in the specified commit."
+fi

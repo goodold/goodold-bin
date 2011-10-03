@@ -1,22 +1,18 @@
 #!/usr/bin/env bash
+HOST="${1:---help}"
 
-HOST="${1:-nodef}"
-
-if [[ "$HOST" == "nodef" ]]; then
+if [[ "$HOST" == "--help" ]]; then
+  echo "Push a public key to a remote machine."
   echo ""
-  echo "Missing host/user information."
-  echo "Usage: $ key-access user@example.com [key]"
-  echo "Where key is the path to the public key"
-  echo ""
+  echo "Usage: key-access [user@]hostname [key]"
+  echo "Where key is the path to the public key."
+  echo "key defaults to ~/.ssh/id_rsa.pub or ~/.ssh/id_dsa.pub"
 else
-  KEY=${2:-~/.ssh/goodold_rsa.pub}
+  KEY=${2:-~/.ssh/id_?sa.pub}
   if [ -f $KEY ]; then
-    KEYNAME=`basename "${KEY}"`
-    echo "Key $KEY"
-    echo "Basename $KEYNAME"
-    scp "$KEY" $HOST:~/$KEYNAME
-    echo "mkdir .ssh; mv ${KEYNAME} .ssh/; cat .ssh/${KEYNAME} >> .ssh/authorized_keys;" | ssh $HOST
-  else
-    echo "$KEY: No such file or directory"
+    ssh $HOST "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys" < $KEY
+    echo "Public key pushed."
+ else
+    echo "$KEY: No such file."
   fi
 fi

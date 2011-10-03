@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+FLAG="-s"
+if [ "`which gpg`" == "" ]; then
+  FLAG="-a"
+fi
+
+if [ "${1}" == "u" ]; then
+  FLAG="-a"
+fi
+
+git tag $FLAG pushed-live-`date | sed s/:/./g | sed s/\ /-/g`

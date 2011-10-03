@@ -8,13 +8,7 @@
  * Heavily inspired by http://drupal4hu.com/node/55
  */
 
-$dir = "/tmp/phpmails";
-if (!is_dir($dir)) {
-  mkdir($dir);
-}
-
+// Use error_log instead
 $input = file_get_contents('php://stdin');
-preg_match('|^To:[ ]*(\S*)|', $input, $matches);
-$filename = !empty($matches[1]) ? $matches[1] : 'no-recepient';
-$t = $dir . '/' . date('ymd\TH:i:s') . '-' . $filename .'.txt';
-file_put_contents($t, $input);
+preg_match('|^To: (.*)|', $input, $matches);
+error_log(var_export("\n" . '>>>>>> NEW MAIL <<<<<<' . "\n" . $input, TRUE));

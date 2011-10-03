@@ -1,0 +1,31 @@
+SITE="${1}"
+
+if [ "$SITE" ]; then
+  # Directories
+  mkdir ~/Projects/$SITE.local
+  mkdir ~/Projects/$SITE.local/public_html
+  cd ~/Projects/$SITE.local/public_html
+  
+  # Repo
+  git clone git@github.com:goodold/$SITE.git .
+
+  echo "ghost add $SITE.local"
+  ghost add $SITE.local  
+
+  echo "sudo apachectl graceful"
+  sudo apachectl graceful
+
+  # Database
+  echo "mysql -uroot -p -e \"CREATE DATABASE $SITE;\""
+  mysql -uroot -p -e "CREATE DATABASE $SITE;"
+  
+  # Drupal specific
+  cp sites/default/default.settings.php sites/default/settings.php
+  sed -i '' -e"s/^\$db_url = 'mysql:\/\/username:password@localhost\/databasename';$/\$db_url = 'mysql:\/\/root:artdec00@localhost\/$SITE';/" sites/default/settings.php
+  sed -i '' -e"s/^\$db_prefix = '';$/\$db_prefix = '$SITE\_';/" sites/default/settings.php
+
+  open .
+  mate -l 92 sites/default/settings.php
+else
+  echo "Error: Specify the name of the site"
+fi
