@@ -1,0 +1,5 @@
+function p { cd ~/Projects/$1; }
+function pp { cd ~/Projects/$1/public_html; }
+
+complete -C ~/bin/goodold-bin//completion-scripts/project_completion -o default p
+complete -C ~/bin/goodold-bin/completion-scripts/project_completion -o default pp

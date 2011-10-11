@@ -7,9 +7,18 @@ for f in ~/bin/goodold-bin/functions/*; do
   fi
 done
 
-# Add ruby gems to path
+# Add local ruby gems to path
 if [ -d $HOME/.gem/ruby/1.8/bin ]; then
   PATH=$HOME/.gem/ruby/1.8/bin:$PATH
+fi
+
+# Add the global gem path
+GEM_BIN_PATH=`gem env | grep EXECUTABLE\ DIRECTORY | grep -o "\/.*$"`
+PATH="$GEM_BIN_PATH:$PATH"
+
+# Add npm binaries to path
+if which -s npm; then
+  PATH="`npm bin`:$PATH"
 fi
 
 # Add apache bin to path
