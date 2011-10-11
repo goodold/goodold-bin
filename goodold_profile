@@ -12,6 +12,11 @@ if [ -d $HOME/.gem/ruby/1.8/bin ]; then
   PATH=$HOME/.gem/ruby/1.8/bin:$PATH
 fi
 
+# Add npm binaries to path
+if which -s npm; then
+  PATH="`npm bin`:$PATH"
+fi
+
 # Add apache bin to path
 if [ -d /opt/local/apache2/bin ]; then
   PATH=/opt/local/apache2/bin:$PATH
