@@ -16,7 +16,8 @@ class ProjectCompletion
   end
   
   def projects
-    `ls ~/Projects/`.split
+    dir = ENV["PROJECT_DIR"] || '~/Projects'
+    `ls #{dir}`.split
   end
 end
 
