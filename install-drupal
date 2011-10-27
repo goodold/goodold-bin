@@ -1,0 +1,186 @@
+#!/bin/bash
+SITES_DOMAIN="simme"
+
+
+# # # # # # # # # # # # # # # # # # # # # # #
+E_BADARGS=65
+
+if [ ! -n "$1" ]
+then
+  echo "Usage: `basename $0` sitename"
+  exit $E_BADARGS
+fi
+
+SITE=$1
+# # # # # # # # # # # # # # # # # # # # # # #
+
+echo
+echo "* * * * * * * * * * * * * * * *"
+echo "* Setting up ${SITE}"
+echo "* * * * * * * * * * * * * * * *"
+echo
+echo "Please enter your password (only shows up if you haven't done sudo in a while):"
+sudo pwd > /dev/null
+echo
+echo "* Site configuration"
+echo
+
+
+read -p "Enter the path to you sites directory [${HOME}/Sites/]:" SITES_DIR
+if [ "$SITES_DIR" = "" ]
+then
+  SITES_DIR="${HOME}/Sites/"
+fi
+
+read -p "Enter your local dev domain [`whoami`]:" SITES_DOMAIN
+if [ "$SITES_DOMAIN" = "" ]
+then
+  SITES_DOMAIN=`whoami`
+fi
+
+read -p "Enter administrator username [admin]:" username
+if [ "$username" = "" ]
+then
+  username='admin'
+fi
+
+read -s -p "Enter administrator password [pass]:" pass
+echo
+if [ "$pass" = "" ]
+then
+  pass='pass'
+fi
+
+read -p "Enter administrator email [admin@example.com]:" email
+if [ "$email" = "" ]
+then
+  email='admin@example.com'
+fi
+
+read -p "Enter site name [${SITE}]:" sitename
+if [ "$sitename" = "" ]
+then
+  sitename=$SITE
+fi
+
+read -p "Enter site email [${email}]:" siteemail
+if [ "$siteemail" = "" ]
+then
+  siteemail=$email
+fi
+
+###############################
+
+echo
+echo "* MySQL configuration"
+echo
+
+read -p "Enter MySQL user [root]:" mysqluser
+if [ "$mysqluser" = "" ]
+then
+  mysqluser='root'
+fi
+
+read -s -p "Enter MySQL password []:" mysqlpass
+echo
+if [ "$mysqlpass" = "" ]
+then
+  mysqlpass=''
+fi
+
+read -p "Enter MySQL host [127.0.0.1]:" mysqlhost
+if [ "$mysqlhost" = "" ]
+then
+  mysqlhost='127.0.0.1'
+fi
+
+read -p "Enter MySQL database [${SITE}]:" mysqldb
+if [ "$mysqldb" = "" ]
+then
+  mysqldb=$SITE
+fi
+
+###############################
+
+echo
+echo "* Custom"
+echo
+
+read -p "Will this site use Solr? y/n [n]:" solr
+if [ "$solr" = "" ]
+then
+  solr="n"
+fi
+
+###############################
+
+
+echo
+echo "* Downloading Drupal..."
+echo
+
+# Create dir
+mkdir -p $SITES_DIR/$SITE.$SITES_DOMAIN
+cd $SITES_DIR/$SITE.$SITES_DOMAIN
+
+drush dl drupal
+mv drupal-7.9 public_html
+
+echo "* Setting permissions..."
+sudo chmod -R 755 public_html
+sudo chown -R `whoami` public_html
+
+echo "* Setting up Drupal environment..."
+cp public_html/sites/default/default.settings.php public_html/sites/default/settings.php
+chmod 777 public_html/sites/default/settings.php
+mkdir public_html/sites/default/files
+chmod 777 public_html/sites/default/files
+cd public_html
+sed 's/#\ RewriteBase\ \//RewriteBase\ \//' .htaccess > .htaccess
+
+echo "* Setting up Git..."
+git init
+git flow init -d
+
+echo "* Installing site..."
+drush si --account-name=${username} --account-pass=${pass} --account-mail=${email} --db-url=mysqli://${mysqluser}:${mysqlpass}@${mysqlhost}/${mysqldb} --site-name=${sitename} --site-mail=${siteemail}
+
+if [ "$solr" = "y" ]
+then
+  echo "* Installing solr..."
+  cd ..
+  curl -o solr.tgz http://apache.dataphone.se//lucene/solr/1.4.1/apache-solr-1.4.1.tgz
+  tar -xzf solr.tgz
+  rm solr.tgz
+  mv apache-solr-1.4.1 solr
+  cd public_html
+  drush dl apachesolr
+  drush en apachesolr -y
+  cd ../solr/example/solr/conf/
+  rm protwords.txt
+  rm solrconfig.xml
+  rm schema.xml
+  ln -s $SITES_DIR/$SITE.$SITES_DOMAIN/public_html/sites/all/modules/apachesolr/protwords.txt `pwd`/
+  ln -s $SITES_DIR/$SITE.$SITES_DOMAIN/public_html/sites/all/modules/apachesolr/schema.xml `pwd`/
+  ln -s $SITES_DIR/$SITE.$SITES_DOMAIN/public_html/sites/all/modules/apachesolr/solrconfig.xml `pwd`/
+  cd $SITES_DIR/$SITE.$SITES_DOMAIN
+  echo
+  echo "Installed solr in ${SITES_DIR}/${SITE}.${SITES_DOMAIN}"
+  echo "Start it with:"
+  echo "   cd ${SITES_DIR}/${SITE}.${SITES_DOMAIN}/solr/example;java -jar start.jar;cd -;"
+  echo
+fi
+
+echo
+echo "* * * * * * * * * * * * * * * *"
+echo "Done!"
+echo
+echo "Downloaded Drupal and installed it to the given database."
+echo "Initialized git and git flow"
+echo "Edited .htaccess to allow clean URLs"
+echo
+echo "Copying your new sites domain to your clipboard!"
+echo "http://${SITE}.${SITES_DOMAIN}" | pbcopy
+echo
+echo "* * * * * * * * * * * * * * * *"
+echo
