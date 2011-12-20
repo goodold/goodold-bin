@@ -63,7 +63,7 @@ alias gitx='gitx --all'
 alias r='rwnd'
 alias o='open'
 alias l='line'
-alias pp='python -m json.tool'    # Pretty print JSON
+alias ppj='python -m json.tool'    # Pretty print JSON
 
 # Alias an set TextMate as EDITOR if it's installed
 if which -s mate; then

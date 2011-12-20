@@ -4,7 +4,9 @@
 function p { cd ${PROJECT_DIR:-~/Projects}/$1; }
 function pp { cd ${PROJECT_DIR:-~/Projects}/$1/public_html; }
 function mp { mate ${PROJECT_DIR:-~/Projects}/$1/public_html; }
+function mpa { mate ${PROJECT_DIR:-~/Projects}/$1/public_html/sites/all; }
 
 complete -C ~/bin/goodold-bin/completion-scripts/project_completion -o default p
 complete -C ~/bin/goodold-bin/completion-scripts/project_completion -o default pp
 complete -C ~/bin/goodold-bin/completion-scripts/project_completion -o default mp
+complete -C ~/bin/goodold-bin/completion-scripts/project_completion -o default mpa
