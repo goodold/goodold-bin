@@ -180,7 +180,7 @@ def get_dbsettings(site_root, remote = False):
     else:
       # Here we could use local() but let's keep the same semantics as for remote.
       proc = subprocess.Popen(["php"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-    f = open('/Users/anders/bin/goodold-bin/fabric/dbsettings.php', 'r');
+    f = open(os.path.join(os.path.dirname( __file__ ), 'dbsettings.php'), 'r');
     change_dir = '<?php chdir("' + site_root +'"); ?>'
     result = proc.communicate(change_dir + f.read())
     if result[0]:
