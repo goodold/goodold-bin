@@ -1,0 +1,8 @@
+repo="`pwd`"
+export GIT_DIR="$repo"
+wd="`dirname $repo`"
+cd "$wd"
+git rebase master
+git submodule init
+git submodule update
+cd "$repo"
