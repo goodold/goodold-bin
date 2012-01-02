@@ -146,12 +146,21 @@ def get_project_dir(project):
     return project_dir
 
 def set_env_from_git(local_site_root, branch="live"):
+  """Parse SSH settings from a remote branch. Supports ssh://USER@HOSTPATH and USER@HOST:PATH."""
   with lcd(local_site_root):
     # Get SSH info from the remote branch settings.
     ssh_settings = local('git config --get remote.{branch}.url'.format(branch=branch), True)
 
-  # Work around limitation in urlparse.
-  ssh_settings = ssh_settings.replace('ssh://', 'http://')
+  if ssh_settings.find('ssh://') > -1:
+    # ssh://USER@HOSTPATH
+    # Work around limitation in urlparse.
+    ssh_settings = ssh_settings.replace('ssh://', 'http://')
+  else:
+    # USER@HOST:PATH
+    # Add "http://" and remove ':' to make it parsable with urlparse
+    ssh_settings = 'http://' + ssh_settings
+    ssh_settings.replace(':', '')
+
   # Parse the uri.
   ssh_settings = urlparse.urlparse(ssh_settings)
   # Set info that fabric uses to connect.
