@@ -118,12 +118,12 @@ def get_project_dir(project):
   # export PROJECT_DIR='~/Sites'
   # Defaults to ~/Projects.
   projects_dir = os.path.expanduser(os.environ.get('PROJECT_DIR', '~/Projects'))
+  project_dir = None
   if project:
     # Find the project directory based on the specified project name.
     # Match by ignoring a possible domain suffix. E.g "drupal" mathes "drupal",
     # "drupal.local", "drupal.dev" etc.
     r = re.compile(r'%s\.?.*$' % project)
-    project_dir = None
 
     for dir in os.listdir(projects_dir):
       if r.match(dir):
@@ -132,6 +132,8 @@ def get_project_dir(project):
 
     if not project_dir:
       abort('No project directory found for %s.' % project)
+
+    return project_dir
   else:
     # Find the project directory based on the current working directory.
     cwd =  os.getcwd()
@@ -143,7 +145,7 @@ def get_project_dir(project):
     except:
       abort("This doesn't seem to be a project directory.")
 
-    return project_dir
+  return project_dir
 
 def set_env_from_git(local_site_root, branch="live"):
   """Parse SSH settings from a remote branch. Supports ssh://USER@HOSTPATH and USER@HOST:PATH."""
