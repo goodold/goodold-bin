@@ -1,0 +1,23 @@
+<VirtualHost *:80>
+  ServerAdmin webmaster@localhost
+  ServerName %(domain)s
+
+  <IfModule mpm_itk_module>
+    AssignUserId %(user)s %(user)s
+  </IfModule>
+
+  DocumentRoot %(site_root)s
+  <Directory %(site_root)s>
+    Options Indexes FollowSymLinks MultiViews
+    AllowOverride All
+    Order allow,deny
+    allow from all
+  </Directory>
+
+  ErrorLog %(logs_dir)s/error.log
+  CustomLog %(logs_dir)s/access.log combined
+
+  # Possible values include: debug, info, notice, warn, error, crit,
+  # alert, emerg.
+  LogLevel warn
+</VirtualHost>

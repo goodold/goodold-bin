@@ -24,9 +24,11 @@ import subprocess
 import json
 import datetime
 from getpass import getpass
+import random
+import string
 
 from fabric.api import *
-from fabric.contrib import console
+from fabric.contrib import console, files
 
 @task
 def db_pull(project=None, remote_name="live"):
@@ -177,6 +179,72 @@ def edit():
   """Edit this fabfile."""
   local('open {fabfile}'.format(**env))
 
+@task
+def setup_server(server='linode'):
+  if server == 'linode':
+    env.host_string = 'goodold.net'
+    env.user = 'root'
+    user = prompt('Enter a unique name for this site (used for UNIX and MYSQL users and database name):')
+    # Create the user with password less login and skip user info.
+    run('adduser --disabled-password --gecos "" {user}'.format(user=user))
+    domain = prompt('Enter the domain for this site:', default = user + '.' + env.host_string)
+
+    site_root = '/home/{user}/{domain}'.format(user=user, domain=domain)
+    run('mkdir {site_root}'.format(site_root=site_root))
+    logs_dir = '/home/{user}/logs/apache2'.format(user=user)
+    run('mkdir -p {logs_dir}'.format(logs_dir=logs_dir))
+
+    # Add public key
+    run('mkdir /home/{user}/.ssh'.format(user=user))
+    key = prompt("Copy the public key so it's in you clipboard and then press Enter.", validate=validate_public_key)
+    run('echo "{key}" >> /home/{user}/.ssh/authorized_keys'.format(key=key, user=user))
+
+    # Change ownership of all added files to the user.
+    run('chown -R {user}:{user} /home/{user}'.format(user=user))
+
+    # Vhost config
+    context = {
+      'user': user,
+      'domain': domain,
+      'site_root': site_root,
+      'logs_dir': logs_dir,
+    }
+    files.upload_template(os.path.join(os.path.dirname( __file__ ), 'linode_vhost.txt'), '/etc/apache2/sites-available/{user}'.format(user=user), context)
+
+    # Enable site and restart Apache
+    run('a2ensite {user}'.format(user=user))
+    run('apache2ctl graceful')
+
+    # Create MYSQL database and user
+    mysql_password=generate_password()
+    # TODO: place the password in the clipboard?
+    mysqlcommand = """CREATE DATABASE {user};
+      CREATE USER '{user}'@'localhost' IDENTIFIED BY '{mysql_password}';
+      GRANT ALL PRIVILEGES ON {user}.* TO '{user}'@'localhost' WITH GRANT OPTION;
+      """.format(user=user, mysql_password=mysql_password)
+
+    run('mysql -uroot -p -e "{mysqlcommand}"'.format(mysqlcommand=mysqlcommand))
+
+    print """
+Database info:
+=========================
+User: {user}
+Password: {mysql_password}
+Database name: {user}
+==========================
+""".format(user=user, mysql_password=mysql_password)
+
+    # Run setuplive with the created site_root, user, and domain.
+    env.host_string = domain
+    env.user = user
+    env.remote_site_root = site_root
+    project = prompt('Enter a project to add this site as a remote and push the code; the setuplive task. (Ctrl+C to abort):', default=user)
+    remote_name = prompt('Specify the name of the remote: ', default='live')
+    setup_remote(project=project, remote_name=remote_name)
+
+  else:
+    abort('There is no recipe for this server environment')
+
 def validate_public_key(input):
   # Input is ignored since it's captured from the clipboard instead.
   with hide('running'):
@@ -319,3 +387,9 @@ def drush_status(site_root, remote = False):
         status[parts[0]] = parts[2]
 
   return status
+
+def generate_password(length=25):
+  urand = random.SystemRandom()
+  # [0:52] ensures English characters only even with different locale.
+  alphabet = string.letters[0:52] + string.digits
+  return str().join(urand.choice(alphabet) for _ in range(length))
