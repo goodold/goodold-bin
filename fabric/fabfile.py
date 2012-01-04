@@ -29,14 +29,14 @@ from fabric.api import *
 from fabric.contrib import console
 
 @task
-def pulldb(project=None, branch="live"):
+def pulldb(project=None, remote_name="live"):
   """Fetch a project's live db and import it."""
   project_dir = get_project_dir(project)
 
   local_site_root = os.path.join(project_dir, 'public_html')
   # Set env attributes if not already available.
   if not env.host_string or not env.user or not env.remote_site_root:
-    set_env_from_git(os.path.join(get_project_dir(project), 'public_html'), branch)
+    set_env_from_git(os.path.join(get_project_dir(project), 'public_html'), remote_name)
 
 
   # Get remote database settings.
@@ -68,17 +68,25 @@ def pulldb(project=None, branch="live"):
     abort("Couldn't parse local database settings.")
 
 @task
-def setuplive(project=None, branch="live"):
+def setuplive(project=None, remote_name="live"):
   """Setup remote repo - usually called live."""
-  env.host_string = prompt('What is the SSH hostname?')
-  env.user = prompt('What is the SSH user?', default='root')
-  env.remote_site_root = prompt('What is the absolute path of the remote repo?', default='/mnt/persist/www/docroot')
-  local('git remote add {branch} ssh://{user}@{host}{path}'.format(
-      branch=branch,
-      host=env.host_string,
-      user=env.user,
-      path=env.remote_site_root
-      ))
+  project_dir = get_project_dir(project)
+  local_site_root = os.path.join(project_dir, 'public_html')
+
+  if not env.host_string:
+    env.host_string = prompt('What is the SSH hostname?')
+  if not env.user:
+    env.user = prompt('What is the SSH user?', default='root')
+  if not env.remote_site_root:
+    env.remote_site_root = prompt('What is the absolute path of the remote repo?', default='/mnt/persist/www/docroot')
+
+  with lcd(local_site_root):
+    local('git remote add {remote_name} ssh://{user}@{host}{path}'.format(
+        remote_name=remote_name,
+        host=env.host_string,
+        user=env.user,
+        path=env.remote_site_root
+        ))
 
   with cd(env.remote_site_root):
     # Initialize and switch repo to branch "live" since it's not possible to
@@ -87,20 +95,20 @@ def setuplive(project=None, branch="live"):
     # is always named "live" on the remote side.
     run('git init && git symbolic-ref HEAD refs/heads/live')
 
-  local('git push {branch} master'.format(branch=branch))
+  local('git push {remote_name} master'.format(remote_name=remote_name))
 
   with cd(env.remote_site_root):
     run('git merge master')
 
   if console.confirm('Setup automatic merge on the remote git repo? This is useful during active development but should be disabled during production. Use "fab automerge:disable=True" to disable.'):
-    automerge(branch=branch)
+    automerge(remote_name=remote_name)
 
 @task
-def automerge(project=None, branch="live", disable=False):
+def automerge(project=None, remote_name="live", disable=False):
   """Setup or disable automerge on push to remote git repo."""
   # Set env attributes if not already available.
   if not env.host_string or not env.user or not env.remote_site_root:
-    set_env_from_git(os.path.join(get_project_dir(project), 'public_html'), branch)
+    set_env_from_git(os.path.join(get_project_dir(project), 'public_html'), remote_name)
 
   hooks_dir = os.path.join(env.remote_site_root, '.git', 'hooks')
 
@@ -207,11 +215,11 @@ def get_project_dir(project):
 
   return project_dir
 
-def set_env_from_git(local_site_root, branch="live"):
-  """Parse SSH settings from a remote branch. Supports ssh://USER@HOSTPATH and USER@HOST:PATH."""
+def set_env_from_git(local_site_root, remote_name="live"):
+  """Parse SSH settings from a remote. Supports ssh://USER@HOSTPATH and USER@HOST:PATH."""
   with lcd(local_site_root):
-    # Get SSH info from the remote branch settings.
-    ssh_settings = local('git config --get remote.{branch}.url'.format(branch=branch), True)
+    # Get SSH info from the remote remote_name settings.
+    ssh_settings = local('git config --get remote.{remote_name}.url'.format(remote_name=remote_name), True)
 
   if ssh_settings.find('ssh://') > -1:
     # ssh://USER@HOSTPATH
