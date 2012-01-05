@@ -1,0 +1,12 @@
+# Copy this file to ~/ and rename it .fabricrc
+# See http://docs.fabfile.org/en/1.3.3/usage/fab.html
+# and http://docs.fabfile.org/en/1.3.3/usage/env.html for more documentation.
+
+# The location of the fabfile so fab can find it anywhere (fabfiles are usually
+# stored in the relation to a "project").
+fabfile=~/bin/goodold-bin/fabric/fabfile.py
+
+# The directory where projects are stored. Defaults to $PROJECTS_DIR if set in
+# your bash profile or "~/Projects" if nothing is set.
+# projects_dir=~/Sites
+

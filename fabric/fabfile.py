@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # Requires Fabric 1.3.3 or newer, http://fabfile.org.
 # Install Fabric with e.g. ´sudo easy_install pip && sudo pip install fabric´
-# Create a ~/.fabricrc:
-#     echo "fabfile=~/bin/goodold-bin/fabric/fabfile.py" >> ~/.fabricrc
-# Add the following to your profile if your projects are not located in 
-# ~/Projects but in e.g ~/Sites:
+# Create a ~/.fabricrc and edit it:
+#     cp ~/bin/goodold-bin/fabric/fabricrc.example ~/.fabricrc
+# Add the following to your profile if your projects are not located in
+# ~/Projects but in e.g ~/Sites (or optionally specify this in ~/.fabricrc):
 #    export PROJECT_DIR='~/Sites'
 """
          .-.             .               .     .
@@ -116,11 +116,37 @@ def automerge(project=None, branch="live", disable=False):
         with cd(hooks_dir):
           run('echo \'drush --root="$wd" cc all\' >> post-receive')
 
+def validate_public_key(input):
+  # Input is ignored since it's captured from the clipboard instead.
+  with hide('running'):
+    key = local('pbpaste', capture = True)
+
+  if key.find('ssh-') == 0:
+    return key
+  else:
+    raise Exception("The clipboard doesn't contain a public key.")
+
+
+def get_projects_dir():
+  """Return the projects directory or abort if it doesn't exits.
+  User can set their project directory in their shell profile. For example:
+  export PROJECT_DIR='~/Sites' or in their .fabricrc
+  Defaults to ~/Projects."""
+
+  if env.projects_dir:
+    projects_dir = os.path.expanduser(env.projects_dir)
+  else:
+    projects_dir = os.path.expanduser(os.environ.get('PROJECT_DIR', '~/Projects'))
+
+  if not os.path.exists(projects_dir):
+    abort("Can't find project directory \"{projects_dir}\". Specify it in your bash profile by adding:\n\
+      export PROJECT_DIR='path-to-project-dir'".format(projects_dir=projects_dir))
+
+  return projects_dir
+
 def get_project_dir(project):
-  # User can set their project directory in their shell profile. For example:
-  # export PROJECT_DIR='~/Sites'
-  # Defaults to ~/Projects.
-  projects_dir = os.path.expanduser(os.environ.get('PROJECT_DIR', '~/Projects'))
+  projects_dir = get_projects_dir()
+
   project_dir = None
   if project:
     # Find the project directory based on the specified project name.
