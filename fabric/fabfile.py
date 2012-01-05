@@ -177,7 +177,7 @@ def set_env_from_git(local_site_root, branch="live"):
 def get_dbsettings(site_root, remote = False):
   settings = None
   ds = drush_status(site_root, remote)
-  if 'database_name' in ds:
+  if ds and 'database_name' in ds:
     settings = {
       'username': ds['database_username'],
       'host': ds['database_hostname'],
