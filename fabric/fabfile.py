@@ -23,6 +23,7 @@ import urlparse
 import subprocess
 import json
 import datetime
+from getpass import getpass
 
 from fabric.api import *
 from fabric.contrib import console
@@ -115,6 +116,36 @@ def automerge(project=None, branch="live", disable=False):
       if console.confirm("Should drush clear Drupal's cache after merge?"):
         with cd(hooks_dir):
           run('echo \'drush --root="$wd" cc all\' >> post-receive')
+
+@task
+def newsite(sitename, repo=None):
+  """Create a new local site from an existing repo."""
+  projects_dir = get_projects_dir()
+  tld = env.get('local_tld', env.local_user)
+  dir_name = sitename if tld == '' else sitename + '.' + tld
+  local_site_rote = os.path.join(projects_dir, dir_name, 'public_html')
+
+  # Create directories and clone repo.
+  local('mkdir -p {local_site_rote}'.format(**locals()))
+  repo = repo if repo else 'git@github.com:goodold/{sitename}.git'.format(**locals())
+  #local('git clone {repo} {local_site_rote}'.format(**locals()))
+
+  # Create database.
+  db_user = env.get('local_db_user', 'root')
+  if 'local_db_password' in env:
+    db_pass = env.local_db_password
+  else:
+    db_pass = getpass('What is your local database password?')
+  local('mysql -u{db_user} -h127.0.0.1 -p{db_pass} -e "CREATE DATABASE {sitename}"'.format(**locals()))
+
+  # Create settings.php and files directory if this is Drupal.
+  ds = drush_status(local_site_rote)
+  if ds and 'drupal_version' in ds:
+    with lcd(local_site_rote):
+      local('drush-rewrite-settings --db-url=mysql://{db_user}:{db_pass}@127.0.0.1/{sitename} --db-prefix={db_prefix}'
+          .format(**locals()))
+      local('mkdir sites/default/files')
+      local('sudo chown _www sites/default/files')
 
 def validate_public_key(input):
   # Input is ignored since it's captured from the clipboard instead.

@@ -10,3 +10,10 @@ fabfile=~/bin/goodold-bin/fabric/fabfile.py
 # your bash profile or "~/Projects" if nothing is set.
 # projects_dir=~/Sites
 
+# Set TLD used in project directory name. Set to empty if you don't use a TLD
+# in the directory name. Defaults to your username.
+# local_tld=
+
+# Local MYSQL info. Used in tasks where this can't be parsed from the project.
+# local_db_user=root
+# local_db_password=pass
