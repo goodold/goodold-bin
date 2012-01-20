@@ -136,7 +136,7 @@ def setup_local_site(sitename, repo=None):
   # Create directories and clone repo.
   local('mkdir -p {local_site_rote}'.format(**locals()))
   repo = repo if repo else 'git@github.com:goodold/{sitename}.git'.format(**locals())
-  #local('git clone {repo} {local_site_rote}'.format(**locals()))
+  local('git clone {repo} {local_site_rote}'.format(**locals()))
 
   # Create database.
   db_user = env.get('local_db_user', 'root')
