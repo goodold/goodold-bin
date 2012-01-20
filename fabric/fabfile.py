@@ -172,7 +172,7 @@ def get_projects_dir():
   export PROJECT_DIR='~/Sites' or in their .fabricrc
   Defaults to ~/Projects."""
 
-  if env.projects_dir:
+  if 'projects_dir' in env:
     projects_dir = os.path.expanduser(env.projects_dir)
   else:
     projects_dir = os.path.expanduser(os.environ.get('PROJECT_DIR', '~/Projects'))
