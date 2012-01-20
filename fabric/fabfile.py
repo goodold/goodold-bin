@@ -29,7 +29,7 @@ from fabric.api import *
 from fabric.contrib import console
 
 @task
-def pulldb(project=None, remote_name="live"):
+def db_pull(project=None, remote_name="live"):
   """Fetch a project's live db and import it."""
   project_dir = get_project_dir(project)
 
@@ -68,8 +68,8 @@ def pulldb(project=None, remote_name="live"):
     abort("Couldn't parse local database settings.")
 
 @task
-def setuplive(project=None, remote_name="live"):
-  """Setup remote repo - usually called live."""
+def setup_remote(project=None, remote_name="live"):
+  """Add and setup remote repo - defaults to live."""
   project_dir = get_project_dir(project)
   local_site_root = os.path.join(project_dir, 'public_html')
 
@@ -100,12 +100,12 @@ def setuplive(project=None, remote_name="live"):
   with cd(env.remote_site_root):
     run('git merge master')
 
-  if console.confirm('Setup automatic merge on the remote git repo? This is useful during active development but should be disabled during production. Use "fab automerge:disable=True" to disable.'):
-    automerge(remote_name=remote_name)
+  if console.confirm('Setup automatic merge on the remote git repo? This is useful during active development but should be disabled during production. Use "fab setup_post_receive:disable=True" to disable.'):
+    setup_post_receive(remote_name=remote_name)
 
 @task
-def automerge(project=None, remote_name="live", disable=False):
-  """Setup or disable automerge on push to remote git repo."""
+def setup_post_receive(project=None, remote_name="live", disable=False):
+  """Setup or disable setup_post_receive on push to remote git repo."""
   # Set env attributes if not already available.
   if not env.host_string or not env.user or not env.remote_site_root:
     set_env_from_git(os.path.join(get_project_dir(project), 'public_html'), remote_name)
@@ -126,7 +126,7 @@ def automerge(project=None, remote_name="live", disable=False):
           run('echo \'drush --root="$wd" cc all\' >> post-receive')
 
 @task
-def newsite(sitename, repo=None):
+def setup_local_site(sitename, repo=None):
   """Create a new local site from an existing repo."""
   projects_dir = get_projects_dir()
   tld = env.get('local_tld', env.local_user)
