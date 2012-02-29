@@ -35,7 +35,7 @@ def db_pull(project=None, remote_name="live"):
 
   local_site_root = os.path.join(project_dir, 'public_html')
   # Set env attributes if not already available.
-  if not env.host_string or not env.user or not env.remote_site_root:
+  if not 'host_string' in env or not 'user' in env or not 'remote_site_root' in env:
     set_env_from_git(os.path.join(get_project_dir(project), 'public_html'), remote_name)
 
 
@@ -73,11 +73,11 @@ def setup_remote(project=None, remote_name="live"):
   project_dir = get_project_dir(project)
   local_site_root = os.path.join(project_dir, 'public_html')
 
-  if not env.host_string:
+  if not 'host_string' in env:
     env.host_string = prompt('What is the SSH hostname?')
-  if not env.user:
+  if 'user' in env:
     env.user = prompt('What is the SSH user?', default='root')
-  if not env.remote_site_root:
+  if not "remote_site_root" in env:
     env.remote_site_root = prompt('What is the absolute path of the remote repo?', default='/mnt/persist/www/docroot')
 
   with lcd(local_site_root):
@@ -107,7 +107,7 @@ def setup_remote(project=None, remote_name="live"):
 def setup_post_receive(project=None, remote_name="live", disable=False):
   """Setup or disable setup_post_receive on push to remote git repo."""
   # Set env attributes if not already available.
-  if not env.host_string or not env.user or not env.remote_site_root:
+  if not 'host_string' in env or not 'user' in env or not 'remote_site_root' in env:
     set_env_from_git(os.path.join(get_project_dir(project), 'public_html'), remote_name)
 
   hooks_dir = os.path.join(env.remote_site_root, '.git', 'hooks')
@@ -161,7 +161,7 @@ def ssh(project=None, remote_name="live", dir=None):
 Defaults to the remotes git directory.
   """
   # Set env attributes if not already available.
-  if not env.host_string or not env.user or not env.remote_site_root:
+  if not 'host_string' in env or not 'user' in env or not 'remote_site_root' in env:
     set_env_from_git(os.path.join(get_project_dir(project), 'public_html'), remote_name)
 
   # Default to remote site root if dir is not specified.
@@ -170,7 +170,7 @@ Defaults to the remotes git directory.
   # Open an interactive ssh shell and cd to the directory. -t is needed
   # to execute the cd command on the remote. bash at the end prevents it from
   # quiting the session.
-  subprocess.call(["ssh", "-t", "{user}@{host_string}".format(**env), "cd {dir}; bash".format(**env)])  
+  subprocess.call(['ssh', '-t', '{user}@{host_string}'.format(**env), 'cd {dir}; bash'.format(**env)])
 
 def validate_public_key(input):
   # Input is ignored since it's captured from the clipboard instead.
