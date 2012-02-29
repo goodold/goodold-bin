@@ -155,6 +155,23 @@ def setup_local_site(sitename, repo=None):
       local('mkdir sites/default/files')
       local('sudo chown _www sites/default/files')
 
+@task
+def ssh(project=None, remote_name="live", dir=None):
+  """Open an interactive shell using the a remotes config.
+Defaults to the remotes git directory.
+  """
+  # Set env attributes if not already available.
+  if not env.host_string or not env.user or not env.remote_site_root:
+    set_env_from_git(os.path.join(get_project_dir(project), 'public_html'), remote_name)
+
+  # Default to remote site root if dir is not specified.
+  env.dir = dir if dir else env.remote_site_root
+
+  # Open an interactive ssh shell and cd to the directory. -t is needed
+  # to execute the cd command on the remote. bash at the end prevents it from
+  # quiting the session.
+  subprocess.call(["ssh", "-t", "{user}@{host_string}".format(**env), "cd {dir}; bash".format(**env)])  
+
 def validate_public_key(input):
   # Input is ignored since it's captured from the clipboard instead.
   with hide('running'):
