@@ -33,10 +33,9 @@ def db_pull(project=None, remote_name="live"):
   """Fetch a project's live db and import it."""
   project_dir = get_project_dir(project)
 
-  local_site_root = os.path.join(project_dir, 'public_html')
-  # Set env attributes if not already available.
-  if not 'host_string' in env or not 'user' in env or not 'remote_site_root' in env:
-    set_env_from_git(os.path.join(get_project_dir(project), 'public_html'), remote_name)
+  local_site_root = get_local_site_root(project_dir)
+  # Set user and host_string from git.
+  set_env_from_git(remote_name, local_site_root=local_site_root)
 
 
   # Get remote database settings.
@@ -71,7 +70,7 @@ def db_pull(project=None, remote_name="live"):
 def setup_remote(project=None, remote_name="live"):
   """Add and setup remote repo - defaults to live."""
   project_dir = get_project_dir(project)
-  local_site_root = os.path.join(project_dir, 'public_html')
+  local_site_root = get_local_site_root(project_dir)
 
   if not 'host_string' in env:
     env.host_string = prompt('What is the SSH hostname?')
@@ -106,9 +105,8 @@ def setup_remote(project=None, remote_name="live"):
 @task
 def setup_post_receive(project=None, remote_name="live", disable=False):
   """Setup or disable setup_post_receive on push to remote git repo."""
-  # Set env attributes if not already available.
-  if not 'host_string' in env or not 'user' in env or not 'remote_site_root' in env:
-    set_env_from_git(os.path.join(get_project_dir(project), 'public_html'), remote_name)
+  # Set user and host_string from git.
+  set_env_from_git(remote_name, project)
 
   hooks_dir = os.path.join(env.remote_site_root, '.git', 'hooks')
 
@@ -160,9 +158,8 @@ def ssh(project=None, remote_name="live", dir=None):
   """Open an interactive shell using the a remotes config.
 Defaults to the remotes git directory.
   """
-  # Set env attributes if not already available.
-  if not 'host_string' in env or not 'user' in env or not 'remote_site_root' in env:
-    set_env_from_git(os.path.join(get_project_dir(project), 'public_html'), remote_name)
+  # Set user and host_string from git.
+  set_env_from_git(remote_name, project)
 
   # Default to remote site root if dir is not specified.
   env.dir = dir if dir else env.remote_site_root
@@ -232,8 +229,17 @@ def get_project_dir(project):
 
   return project_dir
 
-def set_env_from_git(local_site_root, remote_name="live"):
+def get_local_site_root(project_dir):
+  dir = os.path.join(project_dir, 'public_html')
+  return dir if os.path.exists(dir) else project_dir
+
+def set_env_from_git(remote_name="live", project= None, local_site_root = None):
   """Parse SSH settings from a remote. Supports ssh://USER@HOSTPATH and USER@HOST:PATH."""
+
+  # Get local_site_root (git repo) if not specified
+  if not local_site_root:
+    local_site_root = get_local_site_root(get_project_dir(project))
+
   with lcd(local_site_root):
     # Get SSH info from the remote remote_name settings.
     ssh_settings = local('git config --get remote.{remote_name}.url'.format(remote_name=remote_name), True)
