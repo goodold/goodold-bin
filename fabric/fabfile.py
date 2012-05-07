@@ -148,7 +148,8 @@ def setup_local_site(sitename, repo=None):
   ds = drush_status(local_site_rote)
   if ds and 'drupal_version' in ds:
     with lcd(local_site_rote):
-      local('drush-rewrite-settings --db-url=mysql://{db_user}:{db_pass}@127.0.0.1/{sitename} --db-prefix={db_prefix}'
+      # TODO: handle  --db-prefix={db_prefix}
+      local('drush-rewrite-settings --db-url=mysql://{db_user}:{db_pass}@127.0.0.1/{sitename}'
           .format(**locals()))
       local('mkdir sites/default/files')
       local('sudo chown _www sites/default/files')
