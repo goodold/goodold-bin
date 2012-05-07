@@ -72,7 +72,7 @@ def setup_remote(project=None, remote_name="live"):
   project_dir = get_project_dir(project)
   local_site_root = get_local_site_root(project_dir)
 
-  if not 'host_string' in env:
+  if not 'host_string' in env or not env.host_string:
     env.host_string = prompt('What is the SSH hostname?')
   if 'user' in env:
     env.user = prompt('What is the SSH user?', default='root')
