@@ -225,7 +225,8 @@ def get_project_dir(project):
       # Match a subfolder of projects_dir in the current working directory.
       project_dir = re.match("(%s[^%s]*)" % (parent, os.sep), cwd).group(0)
     except:
-      abort("This doesn't seem to be a project directory.")
+      # Fall back to current working directory.
+      project_dir = cwd
 
   return project_dir
 
