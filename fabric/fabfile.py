@@ -130,6 +130,8 @@ def setup_local_site(sitename, repo=None):
   tld = env.get('local_tld', env.local_user)
   dir_name = sitename if tld == '' else sitename + '.' + tld
   local_site_rote = os.path.join(projects_dir, dir_name, 'public_html')
+  # "-" can't be used in mysql database names.
+  db_name = sitename.ssh_settings.replace('-', '_')
 
   # Create directories and clone repo.
   local('mkdir -p {local_site_rote}'.format(**locals()))
@@ -142,14 +144,14 @@ def setup_local_site(sitename, repo=None):
     db_pass = env.local_db_password
   else:
     db_pass = getpass('What is your local database password?')
-  local('mysql -u{db_user} -h127.0.0.1 -p{db_pass} -e "CREATE DATABASE {sitename}"'.format(**locals()))
+  local('mysql -u{db_user} -h127.0.0.1 -p{db_pass} -e "CREATE DATABASE {db_name}"'.format(**locals()))
 
   # Create settings.php and files directory if this is Drupal.
   ds = drush_status(local_site_rote)
   if ds and 'drupal_version' in ds:
     with lcd(local_site_rote):
       # TODO: handle  --db-prefix={db_prefix}
-      local('drush-rewrite-settings --db-url=mysql://{db_user}:{db_pass}@127.0.0.1/{sitename}'
+      local('drush-rewrite-settings --db-url=mysql://{db_user}:{db_pass}@127.0.0.1/{db_name}'
           .format(**locals()))
       local('mkdir sites/default/files')
       local('sudo chown _www sites/default/files')
