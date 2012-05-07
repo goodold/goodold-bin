@@ -169,6 +169,11 @@ Defaults to the remotes git directory.
   # quiting the session.
   subprocess.call(['ssh', '-t', '{user}@{host_string}'.format(**env), 'cd {dir}; bash'.format(**env)])
 
+@task
+def edit():
+  """Edit this fabfile."""
+  local('open {fabfile}'.format(**env))
+
 def validate_public_key(input):
   # Input is ignored since it's captured from the clipboard instead.
   with hide('running'):
