@@ -178,6 +178,14 @@ def deploy(project=None, remote_name="live", branch="master"):
 
   # Push branch to remote
   with lcd(local_site_root):
+    # Check if there are commits not pushed to origin.
+    not_pushed = local('git log origin/{branch}..{branch}'.format(branch=branch), True)
+    if not_pushed:
+      print "\nThere are commits in branch {branch} not pushed to origin:\n".format(branch=branch)
+      print not_pushed
+      if console.confirm("Do you want to abort so you can push the above commits?"):
+        abort('Aborted by user.');
+
     local('git push {remote_name} {branch}'.format(**locals()))
 
   with cd(env.remote_site_root):
