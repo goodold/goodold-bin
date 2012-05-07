@@ -170,6 +170,23 @@ Defaults to the remotes git directory.
   subprocess.call(['ssh', '-t', '{user}@{host_string}'.format(**env), 'cd {dir}; bash'.format(**env)])
 
 @task
+def deploy(project=None, remote_name="live", branch="master"):
+  """Push a branch (defaul master) to a remote (defaul live) and merge it."""
+  local_site_root = get_local_site_root(get_project_dir(project))
+  # Set user and host_string from git.
+  set_env_from_git(remote_name, local_site_root=local_site_root)
+
+  # Push branch to remote
+  with lcd(local_site_root):
+    local('git push {remote_name} {branch}'.format(**locals()))
+
+  with cd(env.remote_site_root):
+    # Merge with no fast-forward option so we can roll back easily and also
+    # have a history of each deploy.
+    run('git merge master --no-ff')
+
+
+@task
 def edit():
   """Edit this fabfile."""
   local('open {fabfile}'.format(**env))
