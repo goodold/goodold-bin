@@ -167,7 +167,12 @@ Defaults to the remotes git directory.
   # Open an interactive ssh shell and cd to the directory. -t is needed
   # to execute the cd command on the remote. bash at the end prevents it from
   # quiting the session.
-  subprocess.call(['ssh', '-t', '{user}@{host_string}'.format(**env), 'cd {dir}; bash'.format(**env)])
+  call = ['ssh', '-t', '{user}@{host_string}'.format(**env)]
+  if env.port:
+    call = call + ['-p', str(env.port)]
+  call.append('cd {dir}; bash'.format(**env))
+  subprocess.call(call)
+
 
 @task
 def edit():
@@ -267,6 +272,14 @@ def set_env_from_git(remote_name="live", project= None, local_site_root = None):
   env.host_string = ssh_settings.hostname
   # Set remote site root that can be used by tasks
   env.remote_site_root = ssh_settings.path
+
+@task
+def vagrant():
+  """Set host string to local vagrant box: 127.0.0.1:2222"""
+  # change from the default user to 'vagrant'
+  env.user = 'vagrant'
+  # connect to the port-forwarded ssh
+  env.host_string = '127.0.0.1:2222'
 
 def get_dbsettings(site_root, remote = False):
   settings = None
