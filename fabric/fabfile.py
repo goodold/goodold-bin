@@ -171,7 +171,7 @@ Defaults to the remotes git directory.
 
 @task
 def deploy(project=None, remote_name="live", branch="master"):
-  """Push a branch (defaul master) to a remote (defaul live) and merge it."""
+  """Push a branch (default to master) to a remote (defaults to live) and merge it."""
   local_site_root = get_local_site_root(get_project_dir(project))
   # Set user and host_string from git.
   set_env_from_git(remote_name, local_site_root=local_site_root)
