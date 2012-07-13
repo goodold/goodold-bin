@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
-# Requires Fabric 1.3.3 or newer, http://fabfile.org.
-# Install Fabric with e.g. ´sudo easy_install pip && sudo pip install fabric´
-# Create a ~/.fabricrc and edit it:
-#     cp ~/bin/goodold-bin/fabric/fabricrc.example ~/.fabricrc
-# Add the following to your profile if your projects are not located in
-# ~/Projects but in e.g ~/Sites (or optionally specify this in ~/.fabricrc):
-#    export PROJECT_DIR='~/Sites'
+# See README.md for installation intructions.
 """
          .-.             .               .     .
    .--.`-'               /     .--.    .-/     /
