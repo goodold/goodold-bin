@@ -152,7 +152,7 @@ def setup_local_site(sitename, repo=None):
 
 @task
 def ssh(project=None, remote_name="live", dir=None):
-  """Open an interactive shell using the a remotes config.
+  """Open an interactive shell using the remotes config.
 Defaults to the remotes git directory.
   """
   # Set user and host_string from git.
