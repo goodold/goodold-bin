@@ -125,7 +125,7 @@ def setup_local_site(sitename, repo=None):
   dir_name = sitename if tld == '' else sitename + '.' + tld
   local_site_rote = os.path.join(projects_dir, dir_name, 'public_html')
   # "-" can't be used in mysql database names.
-  db_name = sitename.ssh_settings.replace('-', '_')
+  db_name = sitename.replace('-', '_')
 
   # Create directories and clone repo.
   local('mkdir -p {local_site_rote}'.format(**locals()))
