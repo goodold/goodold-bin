@@ -8,7 +8,7 @@
 // Hardcoded path to settings file. Should fit our needs.
 $settingsfile = DRUPAL_ROOT . '/sites/default/settings.php';
 
-$db_spec = drush_sql_read_db_spec();
+$db_spec = _drush_sql_get_db_spec();
 
 if (!drush_op('copy', 'sites/default/default.settings.php', $settingsfile) && !drush_get_context('DRUSH_SIMULATE')) {
   drush_set_error(dt('Failed to copy sites/default/default.settings.php to  @settingsfile', array('@settingsfile' => $settingsfile)));
