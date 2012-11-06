@@ -61,12 +61,16 @@ def db_pull(project=None, remote_name="live"):
     abort("Couldn't parse local database settings.")
 
 @task
-def remote_db_settings(project=None, remote_name="live"):
-  """Print the remotes database settings"""
+def db_settings(project=None, remote_name="live", local=False):
+  """Print database settings"""
+  project_dir = get_project_dir(project)
+
+  local_site_root = get_local_site_root(project_dir)
   # Set user and host_string from git.
-  set_env_from_git(remote_name, project)
-  rs = get_dbsettings(env.remote_site_root, remote = True)
-  print rs
+  set_env_from_git(remote_name, local_site_root=local_site_root)
+  site_root = local_site_root if local else env.remote_site_root
+  rs = get_dbsettings(site_root, not local)
+  print json.dumps(rs)
 
 @task
 def setup_remote(project=None, remote_name="live"):
