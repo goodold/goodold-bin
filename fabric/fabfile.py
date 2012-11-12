@@ -86,7 +86,7 @@ def setup_remote(project=None, remote_name="live"):
     env.remote_repo_root = prompt('What is the absolute path of the remote repo?', default='/mnt/persist/www/docroot')
 
   with lcd(local_site_root):
-    local('git remote add {remote_name} ssh://{user}@{host}{path}'.format(
+    local('git remote add {remote_name} {user}@{host}:{path}'.format(
         remote_name=remote_name,
         user=env.user,
         host=env.host_string,
