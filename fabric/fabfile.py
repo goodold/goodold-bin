@@ -82,18 +82,18 @@ def setup_remote(project=None, remote_name="live"):
     env.host_string = prompt('What is the SSH hostname?')
   if 'user' in env:
     env.user = prompt('What is the SSH user?', default='root')
-  if not "remote_site_root" in env:
-    env.remote_site_root = prompt('What is the absolute path of the remote repo?', default='/mnt/persist/www/docroot')
+  if not 'remote_repo_root' in env:
+    env.remote_repo_root = prompt('What is the absolute path of the remote repo?', default='/mnt/persist/www/docroot')
 
   with lcd(local_site_root):
     local('git remote add {remote_name} ssh://{user}@{host}{path}'.format(
         remote_name=remote_name,
-        host=env.host_string,
         user=env.user,
-        path=env.remote_site_root
+        host=env.host_string,
+        path=env.remote_repo_root
         ))
 
-  with cd(env.remote_site_root):
+  with cd(env.remote_repo_root):
     # Initialize and switch repo to branch "live" since it's not possible to
     # push to a checked out branch. git checkout -b doesn't work on empty
     # repositories so use git-symbolic-ref. Note that the checked out branch
@@ -102,7 +102,7 @@ def setup_remote(project=None, remote_name="live"):
 
   local('git push {remote_name} master'.format(remote_name=remote_name))
 
-  with cd(env.remote_site_root):
+  with cd(env.remote_repo_root):
     run('git merge master')
 
   if console.confirm('Setup automatic merge on the remote git repo? This is useful during active development but should be disabled during production. Use "fab setup_post_receive:disable=True" to disable.'):
@@ -114,7 +114,7 @@ def setup_post_receive(project=None, remote_name="live", disable=False):
   # Set user and host_string from git.
   set_env_from_git(remote_name, project)
 
-  hooks_dir = os.path.join(env.remote_site_root, '.git', 'hooks')
+  hooks_dir = os.path.join(env.remote_repo_root, '.git', 'hooks')
 
   if disable:
     with cd(hooks_dir):
@@ -170,8 +170,8 @@ Defaults to the remotes git directory.
   # Set user and host_string from git.
   set_env_from_git(remote_name, project)
 
-  # Default to remote site root if dir is not specified.
-  env.dir = dir if dir else env.remote_site_root
+  # Default to remote repo root if dir is not specified.
+  env.dir = dir if dir else env.remote_repo_root
 
   # Open an interactive ssh shell and cd to the directory. -t is needed
   # to execute the cd command on the remote. bash at the end prevents it from
@@ -245,6 +245,8 @@ def get_project_dir(project):
   return project_dir
 
 def get_local_site_root(project_dir):
+  # If there is a public_html inside the project root assume it's the site
+  # root. If not use the project directory.
   dir = os.path.join(project_dir, 'public_html')
   return dir if os.path.exists(dir) else project_dir
 
@@ -274,8 +276,19 @@ def set_env_from_git(remote_name="live", project= None, local_site_root = None):
   # Set info that fabric uses to connect.
   env.user = ssh_settings.username
   env.host_string = ssh_settings.hostname
+
+  # Set remote repo root that can be used by tasks.
+  env.remote_repo_root = ssh_settings.path
+
   # Set remote site root that can be used by tasks
-  env.remote_site_root = ssh_settings.path
+  # We handle site roots that is in the repo root as well
+  # as in a public_html subfolder inside the repo root.
+  with lcd(local_site_root):
+    local_repo_root = local('git rev-parse --show-toplevel', True)
+    if not local_site_root == local_repo_root:
+      env.remote_site_root = os.path.join(ssh_settings.path, 'public_html')
+    else:
+      env.remote_site_root = ssh_settings.path
 
 def get_dbsettings(site_root, remote = False):
   settings = None
