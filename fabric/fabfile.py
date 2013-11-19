@@ -176,7 +176,7 @@ Defaults to the remotes git directory.
   # Open an interactive ssh shell and cd to the directory. -t is needed
   # to execute the cd command on the remote. bash at the end prevents it from
   # quiting the session.
-  subprocess.call(['ssh', '-t', '{user}@{host_string}'.format(**env), 'cd {dir}; bash'.format(**env)])
+  subprocess.call(['ssh', '-t', '{user}@{host_string}'.format(**env), 'cd {dir}; bash -l'.format(**env)])
 
 @task
 def edit():
